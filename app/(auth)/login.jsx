@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import {  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
+import {  signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, getAuth } from "firebase/auth";
 import { auth } from '../../firebaseConfig';
+import { setToken, setStoredEmail, setStoredPassword, getToken, deleteToken, deleteStoredEmail, deleteStoredPassword, displayLoginError } from '../../lib/authHelpers';
 import { initializeSocket, getSocket } from "../../lib/socketService";
 import { Link } from 'expo-router';
 
@@ -9,58 +10,48 @@ const LoginScreen = () => {
 
   initializeSocket();
   let socket = getSocket();
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [loggedInUsername, setLoggedInUsername] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSignUp = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-    // Signed up 
-      const user = userCredential.user;
-      return user
-    })
-    .then(() => {
-      const currentUser = auth.currentUser
-      updateProfile(currentUser, {
-        displayName: username, photoURL: "https://example.com/jane-q-user/profile.jpg"
-      }).then(() => {
-        // Profile updated!
-        // ...
-        setLoggedInUsername(username)
-        console.log('profile updated')
-      }).catch((error) => {
-        // An error occurred
-        // ...
-        console.log(error)
-      });
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(error)
-      // ..
-    });
-  }
-  const handleLogin = () => {
-      signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+  const handleLogin = async() => {
+       signInWithEmailAndPassword(auth, email, password)
+      .then(async(userCredential) => {
           // Signed in 
           const user = userCredential.user;
+          console.log("user: :", user.stsTokenManager.accessToken)
           // ...
+          setToken(userCredential._tokenResponse.idToken)
+          await setStoredEmail(user.email)
+          await setStoredPassword(password)
+
       })
       .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(error)
+        const errorMessage = error.message;
+        console.log('error message outside func: ',  errorMessage)
+        displayLoginError(errorMessage, setErrorMessage)
+        // if(errorCode === 'auth/email-already-in-use'){
+        //     setErrorMessage('An account with the provided email already exists')
+        // }else if(errorCode === 'auth/missing-password'){
+        //     setErrorMessage('You must provide a password')
+        // }else if(errorMessage === 'Firebase: Password should be at least 6 characters (auth/weak-password).'){
+        //     setErrorMessage('Your password must be at least 6 characters long')
+        // }else if(errorMessage === 'Firebase: Error (auth/invalid-email).'){
+        //     setErrorMessage('You must provide a valid email address')
+        // }
       });
   }
-  const handleLogOut = () => {
-    signOut(auth).then(() => {
+  const handleLogOut = async() => {
+    signOut(auth).then(async() => {
       // Sign-out successful.
       setLoggedInUsername('')
       console.log('logout successfull')
+      deleteToken()
+      await deleteStoredEmail()
+      await deleteStoredPassword()
     }).catch((error) => {
       // An error happened.
       console.log(error)
@@ -72,13 +63,14 @@ const LoginScreen = () => {
   }
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('get auth', getAuth())
       if (!user) {
         console.log('User is signed out');
       } else {
         if (user.email) {
           // User is signed in
+          console.log('User is signed in');
           const uid = user.uid;
-          console.log('User email:', user);
           setLoggedInUsername(user.displayName)
           // ...
         } else {
@@ -98,6 +90,9 @@ const LoginScreen = () => {
   useEffect(() => {
     console.log(auth)
   }, [auth])
+  useEffect(() => {
+    setErrorMessage('')
+  }, [email, password])
 
   // RETURN
 
@@ -108,6 +103,9 @@ const LoginScreen = () => {
       > 
         <View style={styles.nav}>
           <Text>User: {loggedInUsername}</Text>
+        </View>
+        <View style={styles.errorMessageContainer}>
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
         </View>
         <View style={styles.main}>
           <View style={styles.inputContainer}>
@@ -170,6 +168,12 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center'
     },
+    errorMessageContainer:{
+      width: '80%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 50
+  },
     inputContainer: {
       width: '80%'
     },

@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import {  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth } from '../../firebaseConfig';
 import { initializeSocket, getSocket } from "../../lib/socketService";
 import { createUserAPI } from '../../lib/apiHelpers';
+import { Link } from 'expo-router';
+import { displayLoginError } from '../../lib/authHelpers';
 
 const SignUpScreen = () => {
 
@@ -46,35 +48,12 @@ const SignUpScreen = () => {
       });
     })
     .catch((error) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
-        console.log('error code: ',  errorMessage)
-        console.log(error)
-        if(errorCode === 'auth/email-already-in-use'){
-            setErrorMessage('An account with the provided email already exists')
-        }else if(errorCode === 'auth/missing-password'){
-            setErrorMessage('You must provide a password')
-        }else if(errorMessage === 'Firebase: Password should be at least 6 characters (auth/weak-password).'){
-            setErrorMessage('Your password must be at least 6 characters long')
-        }else if(errorMessage === 'Firebase: Error (auth/invalid-email).'){
-            setErrorMessage('You must provide a valid email address')
-        }
+        displayLoginError(errorMessage, setErrorMessage)
       // ..
     });
   }
-  const handleLogin = () => {
-      signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-          // Signed in 
-          const user = userCredential.user;
-          // ...
-      })
-      .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(error)
-      });
-  }
+
   const handleLogOut = () => {
     signOut(auth).then(() => {
       // Sign-out successful.
@@ -114,9 +93,7 @@ const SignUpScreen = () => {
     // Cleanup function to unsubscribe from onAuthStateChanged
     return () => unsubscribe();
   }, [])
-  useEffect(() => {
-    console.log(auth)
-  }, [auth])
+
 
   // RETURN
 
@@ -159,6 +136,7 @@ const SignUpScreen = () => {
               style={styles.input}
             />
           </View>
+          <Link href={'/login'}><Text>Already have an account? Click here to log in</Text></Link>
           <View style={styles.buttonContainer}>
             
             <TouchableOpacity 
