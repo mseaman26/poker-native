@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import {  signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, getAuth } from "firebase/auth";
+import {  signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth } from '../../firebaseConfig';
 import { setToken, setStoredEmail, setStoredPassword, getToken, deleteToken, deleteStoredEmail, deleteStoredPassword, displayLoginError } from '../../lib/authHelpers';
 import { initializeSocket, getSocket } from "../../lib/socketService";
-import { Link } from 'expo-router';
+import { Link, Redirect } from 'expo-router';
 
 const LoginScreen = () => {
 
@@ -13,38 +13,42 @@ const LoginScreen = () => {
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [loggedInUsername, setLoggedInUsername] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   const handleLogin = async() => {
-       signInWithEmailAndPassword(auth, email, password)
+    setErrorMessage('')
+    setLoading(true)
+      signInWithEmailAndPassword(auth, email, password)
       .then(async(userCredential) => {
           // Signed in 
           const user = userCredential.user;
-          console.log("user: :", user.stsTokenManager.accessToken)
           // ...
-          setToken(userCredential._tokenResponse.idToken)
+          const token = await user.getIdToken()
           await setStoredEmail(user.email)
           await setStoredPassword(password)
-
+          try {
+            await setToken(token)
+            console.log('Token stored successfully');
+          } catch (error) {
+            console.error('Failed to store token:', error);
+          }
+          setLoggedIn(true)
       })
       .catch((error) => {
         const errorMessage = error.message;
         console.log('error message outside func: ',  errorMessage)
+        setLoading(false)
         displayLoginError(errorMessage, setErrorMessage)
-        // if(errorCode === 'auth/email-already-in-use'){
-        //     setErrorMessage('An account with the provided email already exists')
-        // }else if(errorCode === 'auth/missing-password'){
-        //     setErrorMessage('You must provide a password')
-        // }else if(errorMessage === 'Firebase: Password should be at least 6 characters (auth/weak-password).'){
-        //     setErrorMessage('Your password must be at least 6 characters long')
-        // }else if(errorMessage === 'Firebase: Error (auth/invalid-email).'){
-        //     setErrorMessage('You must provide a valid email address')
-        // }
-      });
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
   const handleLogOut = async() => {
+    setErrorMessage('')
     signOut(auth).then(async() => {
       // Sign-out successful.
       setLoggedInUsername('')
@@ -63,7 +67,6 @@ const LoginScreen = () => {
   }
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('get auth', getAuth())
       if (!user) {
         console.log('User is signed out');
       } else {
@@ -72,6 +75,7 @@ const LoginScreen = () => {
           console.log('User is signed in');
           const uid = user.uid;
           setLoggedInUsername(user.displayName)
+  
           // ...
         } else {
           // User is signed in, but email is not available
@@ -88,14 +92,17 @@ const LoginScreen = () => {
     return () => unsubscribe();
   }, [])
   useEffect(() => {
-    console.log(auth)
-  }, [auth])
-  useEffect(() => {
     setErrorMessage('')
   }, [email, password])
+  useEffect(() => {
+    console.log('loggedIn', loggedIn)
+    console.log('loading', loading)
+  }, [loggedIn, loading])
 
   // RETURN
-
+  if(!loading && loggedIn) {
+    return <Redirect href={'/'}/>
+  }
   return (
       <KeyboardAvoidingView
         style={styles.container}
@@ -122,7 +129,7 @@ const LoginScreen = () => {
               style={styles.input}
               secureTextEntry
             />
-            <Link href={'/signup'}><Text>Click here to register a new account</Text></Link>
+            <Link href={'/signup'}><Text>Dont have an account? Click here to register a new account</Text></Link>
           </View>
           <View style={styles.buttonContainer}>
             <TouchableOpacity 

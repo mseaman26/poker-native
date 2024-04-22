@@ -4,8 +4,8 @@ import {  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, o
 import { auth } from '../../firebaseConfig';
 import { initializeSocket, getSocket } from "../../lib/socketService";
 import { createUserAPI } from '../../lib/apiHelpers';
-import { Link } from 'expo-router';
-import { displayLoginError } from '../../lib/authHelpers';
+import { Link, Redirect } from 'expo-router';
+import { displayLoginError, setStoredEmail, setStoredPassword } from '../../lib/authHelpers';
 
 const SignUpScreen = () => {
 
@@ -16,17 +16,24 @@ const SignUpScreen = () => {
   const [username, setUsername] = useState('')
   const [loggedInUsername, setLoggedInUsername] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   const handleSignUp = () => {
     setErrorMessage('')
+    setLoading(true)
     if(!email || !password || !username){
         setErrorMessage('You must provide an email, password, and username')
+        setLoading(false)
         return
         
     }
     createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
+    .then(async(userCredential) => {
     // Signed up 
+      await setStoredEmail(email)
+      await setStoredPassword(password)
+      setLoggedIn(true)
       const user = userCredential.user;
       return user
     })
@@ -39,7 +46,6 @@ const SignUpScreen = () => {
         // ...
         setLoggedInUsername(username)
         await createUserAPI(username, email)
-        console.log('profile updated')
       }).catch((error) => {
         // An error occurred
         // ...
@@ -51,10 +57,15 @@ const SignUpScreen = () => {
         const errorMessage = error.message;
         displayLoginError(errorMessage, setErrorMessage)
       // ..
-    });
+    })
+    .finally(() => {
+      setLoading(false)
+    })
   }
 
   const handleLogOut = () => {
+    setErrorMessage('')
+    setLoading(true)
     signOut(auth).then(() => {
       // Sign-out successful.
       setLoggedInUsername('')
@@ -63,7 +74,10 @@ const SignUpScreen = () => {
       // An error happened.
       console.log(error)
       setLoggedInUsername('')
-    });
+    }).finally(() => {
+      setLoggedIn(false)
+      setLoading(false)
+    })
   }
   const testSocket = () => {
     socket.emit('test', {})
@@ -76,7 +90,6 @@ const SignUpScreen = () => {
         if (user.email) {
           // User is signed in
           const uid = user.uid;
-          console.log('User email:', user);
           setLoggedInUsername(user.displayName)
           // ...
         } else {
@@ -96,7 +109,9 @@ const SignUpScreen = () => {
 
 
   // RETURN
-
+  if(!loading && loggedIn) {
+    return <Redirect href={'/'}/>
+  }
   return (
       <KeyboardAvoidingView
         style={styles.container}
