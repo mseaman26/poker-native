@@ -1,10 +1,11 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Link, Redirect } from 'expo-router'
-import { auth } from '../firebaseConfig'
-import {  getStoredEmail, getStoredPassword, getToken } from '../lib/authHelpers'
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut, signInWithCustomToken } from 'firebase/auth'
-import { globalStyles } from '../globalStyles'
+import { auth } from '../../firebaseConfig'
+import {  getStoredEmail, getStoredPassword, deleteStoredEmail, deleteStoredPassword } from '../../lib/authHelpers'
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth'
+import { globalStyles } from '../../globalStyles'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 
 const HomeScreen = () => {
@@ -12,6 +13,13 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState(null);
+
+  const handleSignOut = async () => {
+    await deleteStoredEmail()
+    await deleteStoredPassword()
+    await signOut(auth)
+    
+  }
 
   useEffect(() => {
 
@@ -96,7 +104,15 @@ const HomeScreen = () => {
     return <Redirect href={'/login'}/>
   }
   return (
-    <Redirect href={'/(drawer)'}/>
+    <SafeAreaView style={styles.conainer}>
+      {loading && 
+        <Text>Loading ...</Text>}
+      <Text>Home Screen</Text>
+      <Text>Welcome {user}</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleSignOut} style={[ styles.button, styles.redButton]}><Text style={styles.buttonText}>Sign Out</Text></TouchableOpacity>
+      </View>
+    </SafeAreaView>
   )
 }
 
