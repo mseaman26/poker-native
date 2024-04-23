@@ -43,33 +43,33 @@ const HomeScreen = () => {
       // }finally {
       //   setLoading(false)
       // }
-      const storedEmail = await getStoredEmail()
-      const storedPassword = await getStoredPassword()
-      if(storedEmail && storedPassword) {
-        console.log('stored email and password: ', storedEmail, storedPassword)
-        signInWithEmailAndPassword(auth, storedEmail, storedPassword)
-        .then((userCredential) => {
-          // Signed in 
-          console.log('signed in onreload')
-          setLoggedIn(true)
-          setUser(userCredential.user.displayName)
-          // ...
+      // const storedEmail = await getStoredEmail()
+      // const storedPassword = await getStoredPassword()
+      // if(storedEmail && storedPassword) {
+      //   console.log('stored email and password: ', storedEmail, storedPassword)
+      //   signInWithEmailAndPassword(auth, storedEmail, storedPassword)
+      //   .then((userCredential) => {
+      //     // Signed in 
+      //     console.log('signed in onreload')
+      //     setLoggedIn(true)
+      //     setUser(userCredential.user.displayName)
+      //     // ...
 
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(error)
-        })
-        .finally(() => {
-          setLoading(false)
-        })
-      }else {
-        setLoading(false)
-      }
+      //   })
+      //   .catch((error) => {
+      //     const errorCode = error.code;
+      //     const errorMessage = error.message;
+      //     console.log(error)
+      //   })
+      //   .finally(() => {
+      //     setLoading(false)
+      //   })
+      // }else {
+      //   setLoading(false)
+      // }
      
     }
-    getUserLogin()
+    // getUserLogin()
     onAuthStateChanged(auth, async(user) => {
       if (user) {
         console.log('auth changed: ', user.displayName)
@@ -79,19 +79,15 @@ const HomeScreen = () => {
         setLoggedIn(true)
         setUser(user.displayName)
         setLoading(false)
+        console.log('uid', user.uid)
         // ...
       } else {
         console.log('auth changed: user signed out')
         // User is signed out
-
-        setLoggedIn(false)
       }
     });
 
   }, [])
-  useEffect(() => {
-    console.log('user: ', user)
-  }, [user])
   if(!loading && !loggedIn) {
     console.log('redirecting')
     return <Redirect href={'/login'}/>

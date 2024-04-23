@@ -26,15 +26,15 @@ const LoginScreen = () => {
           // Signed in 
           const user = userCredential.user;
           // ...
-          const token = await user.getIdToken()
-          await setStoredEmail(user.email)
-          await setStoredPassword(password)
-          try {
-            await setToken(token)
-            console.log('Token stored successfully');
-          } catch (error) {
-            console.error('Failed to store token:', error);
-          }
+          // const token = await user.getIdToken()
+          // await setStoredEmail(user.email)
+          // await setStoredPassword(password)
+          // try {
+          //   await setToken(token)
+          //   console.log('Token stored successfully');
+          // } catch (error) {
+          //   console.error('Failed to store token:', error);
+          // }
           setLoggedIn(true)
       })
       .catch((error) => {
@@ -53,9 +53,6 @@ const LoginScreen = () => {
       // Sign-out successful.
       setLoggedInUsername('')
       console.log('logout successfull')
-      deleteToken()
-      await deleteStoredEmail()
-      await deleteStoredPassword()
     }).catch((error) => {
       // An error happened.
       console.log(error)

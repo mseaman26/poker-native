@@ -76,7 +76,12 @@ const HomeScreen = () => {
       }
      
     }
-    getUserLogin()
+    // getUserLogin()
+    if(auth.currentUser) {
+      setLoggedIn(true)
+      setUser(auth.currentUser.displayName)
+      setLoading(false)
+    }
     onAuthStateChanged(auth, async(user) => {
       if (user) {
         console.log('auth changed: ', user.displayName)
@@ -90,15 +95,12 @@ const HomeScreen = () => {
       } else {
         console.log('auth changed: user signed out')
         // User is signed out
+        setLoading(false)
 
-        setLoggedIn(false)
       }
     });
 
-  }, [])
-  useEffect(() => {
-    console.log('user: ', user)
-  }, [user])
+  }, [auth])
   if(!loading && !loggedIn) {
     console.log('redirecting')
     return <Redirect href={'/login'}/>

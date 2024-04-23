@@ -31,27 +31,16 @@ const SignUpScreen = () => {
     createUserWithEmailAndPassword(auth, email, password)
     .then(async(userCredential) => {
     // Signed up 
-      await setStoredEmail(email)
-      await setStoredPassword(password)
-      setLoggedIn(true)
-      const user = userCredential.user;
-      return user
+        setLoggedIn(true)
+        const user = userCredential.user;
+        setLoggedInUsername(user.displayName)
+        await createUserAPI(username, email, user.uid)
     })
     .then(() => {
       const currentUser = auth.currentUser
       updateProfile(currentUser, {
-        displayName: username, photoURL: "https://example.com/jane-q-user/profile.jpg"
-      }).then(async () => {
-        // Profile updated!
-        // ...
-        setLoggedInUsername(username)
-        await createUserAPI(username, email)
-      }).catch((error) => {
-        // An error occurred
-        // ...
-        
-        console.log(error)
-      });
+        displayName: username
+      })
     })
     .catch((error) => {
         const errorMessage = error.message;
