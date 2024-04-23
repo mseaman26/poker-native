@@ -46,6 +46,7 @@ const HomeScreen = () => {
       const storedEmail = await getStoredEmail()
       const storedPassword = await getStoredPassword()
       if(storedEmail && storedPassword) {
+        console.log('stored email and password: ', storedEmail, storedPassword)
         signInWithEmailAndPassword(auth, storedEmail, storedPassword)
         .then((userCredential) => {
           // Signed in 

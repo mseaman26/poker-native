@@ -4,7 +4,7 @@ import React, { useEffect } from 'react'
 const myNetwork = () => {
 
     useEffect(() => {
-        confirm('myNetwork')
+
     }), []
     return (
         <View>

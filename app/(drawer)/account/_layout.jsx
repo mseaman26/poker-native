@@ -1,11 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
+import { Stack } from 'expo-router'
 
 const AccountLayout = () => {
   return (
-    <View>
-      <Text>AccountLayout</Text>
-    </View>
+    <Stack>
+        <Stack.Screen name='accountHome' options={{headerShown: false}}/>
+    </Stack>
   )
 }
 

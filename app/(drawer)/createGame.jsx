@@ -3,6 +3,7 @@ import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { Link } from 'expo-router'
+import { auth } from '../../firebaseConfig'
 
 const createGame = () => {
 
