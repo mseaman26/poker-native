@@ -5,7 +5,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { Link } from 'expo-router'
 import { auth } from '../../firebaseConfig'
 
-const createGame = () => {
+const CreateGame = () => {
 
     const enterGame = () => {
         confirm('enterGame')
@@ -15,12 +15,12 @@ const createGame = () => {
 
     return (
         <SafeAreaView>
-        <Text>createGame</Text>
+        <Text>createGame fsdffdssdfsdf</Text>
         <Link href={{pathname: '/game/2', params: {gameId: 2}}}><Text>Enter Game</Text></Link>
         </SafeAreaView>
     )
 }
 
-export default createGame
+export default CreateGame
 
 const styles = StyleSheet.create({})

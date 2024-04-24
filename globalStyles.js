@@ -28,4 +28,11 @@ export const globalStyles = {
         borderWidth: 0,
         color: 'white'
     },
+    greenButton: {
+        backgroundColor: 'green',
+        borderWidth: 0,
+        color: 'white'
+    }
+
+
 }

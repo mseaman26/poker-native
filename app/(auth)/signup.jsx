@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import {  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
+import {  createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth } from '../../firebaseConfig';
 import { initializeSocket, getSocket } from "../../lib/socketService";
 import { createUserAPI } from '../../lib/apiHelpers';
 import { Link, Redirect } from 'expo-router';
-import { displayLoginError, setStoredEmail, setStoredPassword } from '../../lib/authHelpers';
+import { displayLoginError } from '../../lib/authHelpers';
+import { globalStyles } from '../../globalStyles';
 
 const SignUpScreen = () => {
 
@@ -16,7 +17,7 @@ const SignUpScreen = () => {
   const [username, setUsername] = useState('')
   const [loggedInUsername, setLoggedInUsername] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
 
   const handleSignUp = () => {
@@ -31,19 +32,21 @@ const SignUpScreen = () => {
     createUserWithEmailAndPassword(auth, email, password)
     .then(async(userCredential) => {
     // Signed up 
+        console.log('signed up')
         setLoggedIn(true)
         const user = userCredential.user;
         setLoggedInUsername(user.displayName)
         await createUserAPI(username, email, user.uid)
     })
-    .then(() => {
+    .then(async() => {
       const currentUser = auth.currentUser
-      updateProfile(currentUser, {
+      await updateProfile(currentUser, {
         displayName: username
       })
     })
     .catch((error) => {
         const errorMessage = error.message;
+        console.log(errorMessage)
         displayLoginError(errorMessage, setErrorMessage)
       // ..
     })
@@ -51,7 +54,11 @@ const SignUpScreen = () => {
       setLoading(false)
     })
   }
-
+  const createDude = () => {
+    setEmail('dude@dude.com')
+    setPassword('dudedude')
+    setUsername('Dude')
+  }
   const handleLogOut = () => {
     setErrorMessage('')
     setLoading(true)
@@ -86,7 +93,6 @@ const SignUpScreen = () => {
           console.log('User is signed in, but email is not available');
         }
         // User is signed out
-        
       }
     });
     socket.on('test', () => {
@@ -109,6 +115,7 @@ const SignUpScreen = () => {
         <View style={styles.nav}>
           <Text>User: {loggedInUsername}</Text>
         </View>
+        <TouchableOpacity onPress={createDude} style={[globalStyles.g_button, globalStyles.g_buttonContainer]}><Text styles={globalStyles.g_buttonText}>Create "dude"</Text></TouchableOpacity>
         <View style={styles.errorMessageContainer}>
             <Text style={styles.errorMessage}>{errorMessage}</Text>
         </View>
